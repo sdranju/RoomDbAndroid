@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">Room DB Example</string>
+    <string name="logo_description">Logo</string>
+    <string name="login_id">Login ID</string>
+    <string name="password">Password</string>
+    <string name="login">Login</string>
+    <string name="congratulations">Congratulations!</string>
+</resources>
