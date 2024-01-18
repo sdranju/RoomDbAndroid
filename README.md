@@ -125,5 +125,106 @@ public class InitDb extends Application {
 ```
 <br>
 
+***Step 7: Create an Activity***
+
+In this example, we're creating a login activity class to perform the database task. But one important thing you must notice, performing a database query on the main thread in Room is not allowed. To fix this issue, database operations must be performed on a background thread and you should use the Executors class or Kotlin Coroutines for background threading.
+
+
+```java
+public class LoginActivity extends AppCompatActivity {
+
+    private final ExecutorService executorService = Executors.newSingleThreadExecutor();
+    private EditText etLoginId;
+    private EditText etPassword;
+    private Button btnLogin;
+
+    private UserDao userDao;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_login);
+
+        // Initialize the UserDao
+        userDao = InitDb.appDatabase.userDao();
+
+        // Initialize UI components
+        etLoginId = findViewById(R.id.etLoginId);
+        etPassword = findViewById(R.id.etPassword);
+        btnLogin = findViewById(R.id.btnLogin);
+
+        // Set onClickListener for the login button
+        btnLogin.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                login();
+            }
+        });
+
+        // Initialize the UserDao
+        userDao = InitDb.appDatabase.userDao();
+
+        // Insert a test user for demonstration purposes
+        insertTestUser();
+    }
+
+    private void login() {
+        String loginId = etLoginId.getText().toString().trim();
+        String password = etPassword.getText().toString().trim();
+
+        if (TextUtils.isEmpty(loginId) || TextUtils.isEmpty(password)) {
+            Toast.makeText(this, "Please enter login credentials", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Execute the database query on a background thread
+        executorService.execute(new Runnable() {
+            @Override
+            public void run() {
+                final User user = userDao.getUserByLoginId(loginId);
+
+                // Handle the result on the main thread
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (user != null && password.equals(user.getPassword())) {
+                            // Successful login, navigate to the main activity
+                            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                            startActivity(intent);
+                            finish();
+                        } else {
+                            // Invalid login credentials
+                            Toast.makeText(LoginActivity.this, "Invalid login credentials", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
+            }
+        });
+    }
+
+
+    private void insertTestUser() {
+        executorService.execute(new Runnable() {
+            @Override
+            public void run() {
+                // Check if the test user 'admin' already exists in the db
+                if (userDao.getUserByLoginId("admin") == null) {
+                    // Insert the test user
+                    User testUser = new User();
+                    testUser.setLoginId("admin");
+                    testUser.setPassword("admin");  // Note: In a real application, passwords should be hashed
+                    testUser.setFullName("Admin User");
+                    testUser.setContact("admin@example.com");
+
+                    userDao.insert(testUser);
+                }
+            }
+        });
+    }
+
+}  
+```
+<br>
+
 Congratulations! You've successfully set up and implemented a Room database in your Android application. Feel free to adapt and expand upon this example based on your specific use case and requirements.
 
