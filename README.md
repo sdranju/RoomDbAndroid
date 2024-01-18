@@ -38,6 +38,9 @@ public class User {
     @ColumnInfo(name = "login_id")
     public String loginId;
 
+    @ColumnInfo(name = "password")
+    public String password;
+
     @ColumnInfo(name = "full_name")
     public String fullName;
 
@@ -63,10 +66,10 @@ public interface UserDao {
     @Delete
     void delete(User user);
 
-    @Query("SELECT * FROM user_table WHERE id = :userId")
-    User getUserById(int userId);
+    @Query("SELECT * FROM user_table WHERE login_id = :userId")
+    User getUserByLoginId(String userId);
 
-    @Query("SELECT * FROM user_table")
+    @Query("SELECT * FROM " + DbConfig.USER_TABLE)
     List<User> getAllUsers();
 }
 
@@ -88,7 +91,7 @@ public abstract class AppDatabase extends RoomDatabase {
             synchronized (AppDatabase.class) {
                 if (INSTANCE == null) {
                     INSTANCE = Room.databaseBuilder(context.getApplicationContext(),
-                            AppDatabase.class, "app_database")
+                                    AppDatabase.class, DbConfig.ROOM_DB_NAME)
                             .build();
                 }
             }
@@ -109,7 +112,7 @@ In your activities or fragments, use the UserDao methods to perform database ope
 
 Initialize the database in your application class or the entry point of your app.
 ```java
-public class MyApp extends Application {
+public class InitDb extends Application {
     public static AppDatabase appDatabase;
 
     @Override
@@ -120,3 +123,7 @@ public class MyApp extends Application {
 }
 
 ```
+<br>
+
+Congratulations! You've successfully set up and implemented a Room database in your Android application. Feel free to adapt and expand upon this example based on your specific use case and requirements.
+
